@@ -10,7 +10,12 @@
   "license": "MIT",
   "description": "A parser for Shopware Twig",
   "devDependencies": {
+    "@types/node": "^24.2.1",
     "vite": "^7.1.2",
     "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "tree-sitter": "^0.25.0",
+    "tree-sitter-shopware-twig": "^0.2.3"
   }
 }
