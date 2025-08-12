@@ -1,5 +1,5 @@
-const Parser = require("tree-sitter");
-const ShopwareTwig = require("tree-sitter-shopware-twig");
+import Parser from "tree-sitter";
+import ShopwareTwig from "tree-sitter-shopware-twig";
 
 type Tree = {
   rootNode: TemplateNode;
@@ -28,6 +28,7 @@ type TwigVariableNode = {
 };
 
 const parser = new Parser();
+// @ts-expect-error
 parser.setLanguage(ShopwareTwig);
 
 export function parse(content: string): Tree {
