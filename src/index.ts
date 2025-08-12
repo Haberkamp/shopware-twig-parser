@@ -96,7 +96,7 @@ export function parse(content: string): Tree {
 
         if (stack.length > 0) {
           // Add to the current parent's children
-          stack[stack.length - 1].children.push(blockNode);
+          stack[stack.length - 1]?.children.push(blockNode);
         } else {
           // Add to root level
           result.push(blockNode);
