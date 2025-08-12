@@ -1,9 +1,14 @@
 {
   "name": "shopware-twig-parser",
   "version": "0.0.1",
-  "main": "index.js",
+  "main": "./dist/commonjs/index.js",
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "test": "vitest"
+    "test": "vitest",
+    "prepare": "tshy",
+    "build": "tshy"
   },
   "keywords": [],
   "author": "Nils Haberkamp",
@@ -11,11 +16,34 @@
   "description": "A parser for Shopware Twig",
   "devDependencies": {
     "@types/node": "^24.2.1",
+    "tshy": "^3.0.2",
     "vite": "^7.1.2",
     "vitest": "^3.2.4"
   },
   "dependencies": {
     "tree-sitter": "^0.25.0",
     "tree-sitter-shopware-twig": "^0.2.3"
-  }
+  },
+  "type": "module",
+  "tshy": {
+    "exports": {
+      "./package.json": "./package.json",
+      ".": "./src/index.ts"
+    }
+  },
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "import": {
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/index.d.ts",
+        "default": "./dist/commonjs/index.js"
+      }
+    }
+  },
+  "types": "./dist/commonjs/index.d.ts",
+  "module": "./dist/esm/index.js"
 }
