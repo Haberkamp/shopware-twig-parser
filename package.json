@@ -8,5 +8,9 @@
   "keywords": [],
   "author": "Nils Haberkamp",
   "license": "MIT",
-  "description": "A parser for Shopware Twig"
+  "description": "A parser for Shopware Twig",
+  "devDependencies": {
+    "vite": "^7.1.2",
+    "vitest": "^3.2.4"
+  }
 }
