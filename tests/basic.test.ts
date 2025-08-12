@@ -1,5 +1,5 @@
 import { it, expect } from "vitest";
-import { parse } from "../src";
+import { parse } from "../src/index.js";
 
 it("parses an empty twig block", () => {
   // ARRANGE
