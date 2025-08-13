@@ -8,7 +8,8 @@
   "scripts": {
     "test": "vitest",
     "prepare": "tshy",
-    "build": "tshy"
+    "build": "tshy",
+    "release": "changeset version && changeset publish"
   },
   "keywords": [],
   "author": "Nils Haberkamp",
