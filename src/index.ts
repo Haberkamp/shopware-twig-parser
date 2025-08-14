@@ -238,25 +238,45 @@ export function parse(content: string): Tree {
         (child: any) => child.type === "html_self_closing_tag"
       );
 
+      // Check for void tag
+      const voidTag = node.children.find(
+        (child: any) => child.type === "html_void_tag"
+      );
+
       // Find the start tag to get the element name
       const startTag = node.children.find(
         (child: any) => child.type === "html_start_tag"
       );
 
-      // Use self-closing tag if available, otherwise start tag
-      const tagToUse = selfClosingTag || startTag;
+      // Use self-closing tag, void tag, or start tag in that order of preference
+      const tagToUse = selfClosingTag || voidTag || startTag;
       if (!tagToUse) return null;
 
-      const tagName = tagToUse.children.find(
-        (child: any) => child.type === "html_tag_name"
-      );
+      let tagName: any;
+      if (voidTag) {
+        // For void tags, the tag name is nested inside html_start_tag within the void tag
+        const voidStartTag = voidTag.children.find(
+          (child: any) => child.type === "html_start_tag"
+        );
+        tagName = voidStartTag?.children.find(
+          (child: any) => child.type === "html_tag_name"
+        );
+      } else {
+        // For regular and self-closing tags, tag name is directly in the tag
+        tagName = tagToUse.children.find(
+          (child: any) => child.type === "html_tag_name"
+        );
+      }
       if (!tagName) return null;
 
-      // Check if this is a void element (no end tag and not self-closing)
-      const hasEndTag = node.children.some(
-        (child: any) => child.type === "html_end_tag"
+      // Check if this is a void element
+      const hasVoidTag = node.children.some(
+        (child: any) => child.type === "html_void_tag"
       );
-      const isVoid = !hasEndTag;
+      const hasSelfClosingTag = node.children.some(
+        (child: any) => child.type === "html_self_closing_tag"
+      );
+      const isVoid = hasVoidTag || hasSelfClosingTag;
 
       // Parse attributes from the tag (either self-closing or start tag)
       const attributes: HtmlAttributeNode[] = [];

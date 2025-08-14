@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "tree-sitter": "^0.25.0",
-    "tree-sitter-shopware-twig": "^0.2.4"
+    "tree-sitter-shopware-twig": "1.0.0"
   },
   "type": "module",
   "tshy": {

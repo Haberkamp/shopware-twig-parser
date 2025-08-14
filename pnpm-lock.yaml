@@ -12,8 +12,8 @@ importers:
         specifier: ^0.25.0
         version: 0.25.0
       tree-sitter-shopware-twig:
-        specifier: ^0.2.4
-        version: 0.2.4(tree-sitter@0.25.0)
+        specifier: 1.0.0
+        version: 1.0.0(tree-sitter@0.25.0)
     devDependencies:
       '@changesets/cli':
         specifier: ^2.29.5
@@ -974,8 +974,8 @@ packages:
     resolution: {integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==}
     engines: {node: '>=8.0'}
 
-  tree-sitter-shopware-twig@0.2.4:
-    resolution: {integrity: sha512-PEPkuz7pRXs2fvB3/UYVKTaimSAsR5ie9AftP+7a5uG1T4nWvU3pvRY3gJROeRs5IsS0yXfK2LaQu9t+AG4MNw==}
+  tree-sitter-shopware-twig@1.0.0:
+    resolution: {integrity: sha512-i50FGZLCGDYmZYjIC4FpQiuxLhUWjQJf709G1s9LkwhuyIsD013aMQtawOHzIuQD1Geu/VQ+HPBQ+KT9yI7tCA==}
     peerDependencies:
       tree-sitter: ^0.22.4
     peerDependenciesMeta:
@@ -1990,7 +1990,7 @@ snapshots:
     dependencies:
       is-number: 7.0.0
 
-  tree-sitter-shopware-twig@0.2.4(tree-sitter@0.25.0):
+  tree-sitter-shopware-twig@1.0.0(tree-sitter@0.25.0):
     dependencies:
       node-addon-api: 8.5.0
       node-gyp-build: 4.8.4
