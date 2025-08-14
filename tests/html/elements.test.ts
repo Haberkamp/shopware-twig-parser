@@ -155,3 +155,65 @@ it("parses self closing tags", () => {
   `
   );
 });
+
+it("parses custom tags", () => {
+  // ARRANGE
+  const subject = parse;
+
+  // ACT
+  const result = subject("<my-tag>Hello</my-tag>");
+
+  // ASSERT
+  expect(result).toMatchInlineSnapshot(
+    `
+    {
+      "rootNode": {
+        "children": [
+          {
+            "children": [
+              {
+                "content": "Hello",
+                "type": "content",
+              },
+            ],
+            "name": "my-tag",
+            "type": "html_element",
+          },
+        ],
+        "type": "template",
+      },
+    }
+    `
+  );
+});
+
+it("parses custom tags with colons in the name", () => {
+  // ARRANGE
+  const subject = parse;
+
+  // ACT
+  const result = subject("<my:tag>Hello</my:tag>");
+
+  // ASSERT
+  expect(result).toMatchInlineSnapshot(
+    `
+    {
+      "rootNode": {
+        "children": [
+          {
+            "children": [
+              {
+                "content": "Hello",
+                "type": "content",
+              },
+            ],
+            "name": "my:tag",
+            "type": "html_element",
+          },
+        ],
+        "type": "template",
+      },
+    }
+    `
+  );
+});
