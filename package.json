@@ -1,6 +1,6 @@
 {
   "name": "shopware-twig-parser",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "main": "./dist/commonjs/index.js",
   "files": [
     "dist"
