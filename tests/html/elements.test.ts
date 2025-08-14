@@ -53,3 +53,44 @@ it("parses empty html elements", () => {
     }
   `);
 });
+
+it("parses nested html elements", () => {
+  // ARRANGE
+  const subject = parse;
+
+  // ACT
+  const result = subject("<p>Hello <span>World</span></p>");
+
+  // ASSERT
+  expect(result).toMatchInlineSnapshot(
+    `
+    {
+      "rootNode": {
+        "children": [
+          {
+            "children": [
+              {
+                "content": "Hello",
+                "type": "content",
+              },
+              {
+                "children": [
+                  {
+                    "content": "World",
+                    "type": "content",
+                  },
+                ],
+                "name": "span",
+                "type": "html_element",
+              },
+            ],
+            "name": "p",
+            "type": "html_element",
+          },
+        ],
+        "type": "template",
+      },
+    }
+    `
+  );
+});
