@@ -12,6 +12,8 @@ type TemplateNode = {
     | HtmlElementNode
     | ContentNode
     | HtmlDoctypeNode
+    | HtmlNamedEntityNode
+    | HtmlNumericEntityNode
   )[];
 };
 
@@ -26,6 +28,8 @@ type TwigStatementDirectiveNode = {
     | ContentNode
     | HtmlElementNode
     | HtmlDoctypeNode
+    | HtmlNamedEntityNode
+    | HtmlNumericEntityNode
   )[];
 };
 
@@ -69,12 +73,27 @@ type HtmlElementNode = {
   type: "html_element";
   name: string;
   attributes?: HtmlAttributeNode[];
-  children: (HtmlElementNode | ContentNode)[];
+  children: (
+    | HtmlElementNode
+    | ContentNode
+    | HtmlNamedEntityNode
+    | HtmlNumericEntityNode
+  )[];
   void?: boolean;
 };
 
 type HtmlDoctypeNode = {
   type: "doctype";
+};
+
+type HtmlNamedEntityNode = {
+  type: "html_named_entity";
+  content: string;
+};
+
+type HtmlNumericEntityNode = {
+  type: "html_numeric_entity";
+  content: string;
 };
 
 const parser = new Parser();
@@ -186,7 +205,31 @@ export function parse(content: string): Tree {
         content?: string;
       }
     | HtmlElementNode
+    | HtmlNamedEntityNode
+    | HtmlNumericEntityNode
   > = [];
+
+  function convertHtmlEntity(
+    node: any
+  ): HtmlNamedEntityNode | HtmlNumericEntityNode | null {
+    if (node.type === "html_entity") {
+      const entityText = node.text;
+
+      // Check if it's a numeric entity (starts with &#)
+      if (entityText.startsWith("&#")) {
+        return {
+          type: "html_numeric_entity",
+          content: entityText,
+        };
+      } else if (entityText.startsWith("&")) {
+        return {
+          type: "html_named_entity",
+          content: entityText,
+        };
+      }
+    }
+    return null;
+  }
 
   function convertHtmlElement(node: any): HtmlElementNode | null {
     if (node.type === "html_element") {
@@ -258,7 +301,12 @@ export function parse(content: string): Tree {
         attributes.push(attribute);
       }
 
-      const elementChildren: (HtmlElementNode | ContentNode)[] = [];
+      const elementChildren: (
+        | HtmlElementNode
+        | ContentNode
+        | HtmlNamedEntityNode
+        | HtmlNumericEntityNode
+      )[] = [];
 
       // Process all children that are not start/end tags
       for (const child of node.children) {
@@ -271,6 +319,11 @@ export function parse(content: string): Tree {
           const nestedElement = convertHtmlElement(child);
           if (nestedElement) {
             elementChildren.push(nestedElement);
+          }
+        } else if (child.type === "html_entity") {
+          const entityNode = convertHtmlEntity(child);
+          if (entityNode) {
+            elementChildren.push(entityNode);
           }
         }
       }
@@ -309,6 +362,11 @@ export function parse(content: string): Tree {
       allNodes.push({
         type: "doctype",
       });
+    } else if (child.type === "html_entity") {
+      const entityNode = convertHtmlEntity(child);
+      if (entityNode) {
+        allNodes.push(entityNode);
+      }
     } else {
       const converted = convertNode(child);
       if (converted) {
@@ -337,18 +395,24 @@ export function parse(content: string): Tree {
           content?: string;
         }
       | HtmlElementNode
+      | HtmlNamedEntityNode
+      | HtmlNumericEntityNode
     >
   ): (
     | TwigStatementDirectiveNode
     | HtmlElementNode
     | ContentNode
     | HtmlDoctypeNode
+    | HtmlNamedEntityNode
+    | HtmlNumericEntityNode
   )[] {
     const result: (
       | TwigStatementDirectiveNode
       | HtmlElementNode
       | ContentNode
       | HtmlDoctypeNode
+      | HtmlNamedEntityNode
+      | HtmlNumericEntityNode
     )[] = [];
     const stack: TwigStatementDirectiveNode[] = [];
 
@@ -479,6 +543,32 @@ export function parse(content: string): Tree {
         } else {
           // Add to root level
           result.push(doctypeNode);
+        }
+      } else if (node.type === "html_named_entity" && "content" in node) {
+        const entityNode = node as HtmlNamedEntityNode;
+
+        if (stack.length > 0) {
+          // Add to the current parent's children
+          const parent = stack[stack.length - 1];
+          if (parent && parent.children) {
+            parent.children.push(entityNode);
+          }
+        } else {
+          // Add to root level
+          result.push(entityNode);
+        }
+      } else if (node.type === "html_numeric_entity" && "content" in node) {
+        const entityNode = node as HtmlNumericEntityNode;
+
+        if (stack.length > 0) {
+          // Add to the current parent's children
+          const parent = stack[stack.length - 1];
+          if (parent && parent.children) {
+            parent.children.push(entityNode);
+          }
+        } else {
+          // Add to root level
+          result.push(entityNode);
         }
       }
     }
