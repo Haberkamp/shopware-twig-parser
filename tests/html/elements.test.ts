@@ -202,6 +202,40 @@ it("parses self closing tags and content after them on the same level", () => {
   );
 });
 
+it("parses void tags with attributes", () => {
+  // ARRANGE
+  const subject = parse;
+
+  // ACT
+  const result = subject("<img src='https://example.com/image.jpg'>");
+
+  // ASSERT
+  expect(result).toMatchInlineSnapshot(
+    `
+    {
+      "rootNode": {
+        "children": [
+          {
+            "attributes": [
+              {
+                "name": "src",
+                "type": "html_attribute",
+                "value": "https://example.com/image.jpg",
+              },
+            ],
+            "children": [],
+            "name": "img",
+            "type": "html_element",
+            "void": true,
+          },
+        ],
+        "type": "template",
+      },
+    }
+    `
+  );
+});
+
 it("parses custom tags", () => {
   // ARRANGE
   const subject = parse;

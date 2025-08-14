@@ -280,9 +280,24 @@ export function parse(content: string): Tree {
 
       // Parse attributes from the tag (either self-closing or start tag)
       const attributes: HtmlAttributeNode[] = [];
-      const attributeNodes = tagToUse.children.filter(
-        (child: any) => child.type === "html_attribute"
-      );
+      let attributeNodes;
+
+      if (voidTag) {
+        // For void tags, attributes are in the nested html_start_tag
+        const voidStartTag = voidTag.children.find(
+          (child: any) => child.type === "html_start_tag"
+        );
+        attributeNodes = voidStartTag
+          ? voidStartTag.children.filter(
+              (child: any) => child.type === "html_attribute"
+            )
+          : [];
+      } else {
+        // For regular and self-closing tags, attributes are directly in the tag
+        attributeNodes = tagToUse.children.filter(
+          (child: any) => child.type === "html_attribute"
+        );
+      }
 
       for (const attrNode of attributeNodes) {
         const nameNode = attrNode.children.find(
