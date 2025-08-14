@@ -7,7 +7,7 @@ type Tree = {
 
 type TemplateNode = {
   type: "template";
-  children: TwigStatementDirectiveNode[];
+  children: (TwigStatementDirectiveNode | HtmlElementNode | ContentNode)[];
 };
 
 type TwigStatementDirectiveNode = {
@@ -47,6 +47,12 @@ type TwigVariableNode = {
 type TwigFunctionNode = {
   type: "twig_function";
   name: string;
+};
+
+type HtmlElementNode = {
+  type: "html_element";
+  name: string;
+  children: (HtmlElementNode | ContentNode)[];
 };
 
 const parser = new Parser();
@@ -149,12 +155,56 @@ export function parse(content: string): Tree {
     content?: string;
   }> = [];
 
+  function convertHtmlElement(node: any): HtmlElementNode | null {
+    if (node.type === "html_element") {
+      // Find the start tag to get the element name
+      const startTag = node.children.find(
+        (child: any) => child.type === "html_start_tag"
+      );
+      if (!startTag) return null;
+
+      const tagName = startTag.children.find(
+        (child: any) => child.type === "html_tag_name"
+      );
+      if (!tagName) return null;
+
+      const elementChildren: (HtmlElementNode | ContentNode)[] = [];
+
+      // Process all children that are not start/end tags
+      for (const child of node.children) {
+        if (child.type === "content") {
+          elementChildren.push({
+            type: "content",
+            content: child.text,
+          });
+        } else if (child.type === "html_element") {
+          const nestedElement = convertHtmlElement(child);
+          if (nestedElement) {
+            elementChildren.push(nestedElement);
+          }
+        }
+      }
+
+      return {
+        type: "html_element",
+        name: tagName.text,
+        children: elementChildren,
+      };
+    }
+    return null;
+  }
+
   for (const child of tree.rootNode.children) {
     if (child.type === "content") {
       allNodes.push({
         type: "content",
         content: child.text,
       });
+    } else if (child.type === "html_element") {
+      const htmlElement = convertHtmlElement(child);
+      if (htmlElement) {
+        allNodes.push(htmlElement);
+      }
     } else {
       const converted = convertNode(child);
       if (converted) {
@@ -166,15 +216,29 @@ export function parse(content: string): Tree {
 
   // Second pass: build nested structure using a stack
   function buildNestedStructure(
-    nodes: Array<{
-      type: "block" | "endblock" | "function" | "if" | "endif" | "content";
-      name?: string;
-      functionName?: string;
-      expression?: string;
-      content?: string;
-    }>
-  ): TwigStatementDirectiveNode[] {
-    const result: TwigStatementDirectiveNode[] = [];
+    nodes: Array<
+      | {
+          type:
+            | "block"
+            | "endblock"
+            | "function"
+            | "if"
+            | "endif"
+            | "content"
+            | "html_element";
+          name?: string;
+          functionName?: string;
+          expression?: string;
+          content?: string;
+        }
+      | HtmlElementNode
+    >
+  ): (TwigStatementDirectiveNode | HtmlElementNode | ContentNode)[] {
+    const result: (
+      | TwigStatementDirectiveNode
+      | HtmlElementNode
+      | ContentNode
+    )[] = [];
     const stack: TwigStatementDirectiveNode[] = [];
 
     for (const node of nodes) {
@@ -275,6 +339,20 @@ export function parse(content: string): Tree {
             type: "twig_statement_directive",
             children: [contentNode],
           });
+        }
+      } else if (node.type === "html_element" && "name" in node) {
+        // HTML elements are already processed and can be added directly
+        const htmlNode = node as HtmlElementNode;
+
+        if (stack.length > 0) {
+          // Add to the current parent's children
+          const parent = stack[stack.length - 1];
+          if (parent && parent.children) {
+            parent.children.push(htmlNode);
+          }
+        } else {
+          // Add to root level
+          result.push(htmlNode);
         }
       }
     }
