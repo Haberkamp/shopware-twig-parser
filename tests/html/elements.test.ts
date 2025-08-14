@@ -156,6 +156,52 @@ it("parses self closing tags", () => {
   );
 });
 
+it("parses self closing tags and content after them on the same level", () => {
+  // ARRANGE
+  const subject = parse;
+
+  // ACT
+  const result = subject(
+    "<body><input type='text' /> This is some content</body>"
+  );
+
+  // ASSERT
+  expect(result).toMatchInlineSnapshot(
+    `
+    {
+      "rootNode": {
+        "children": [
+          {
+            "children": [
+              {
+                "attributes": [
+                  {
+                    "name": "type",
+                    "type": "html_attribute",
+                    "value": "text",
+                  },
+                ],
+                "children": [],
+                "name": "input",
+                "type": "html_element",
+                "void": true,
+              },
+              {
+                "content": "This is some content",
+                "type": "content",
+              },
+            ],
+            "name": "body",
+            "type": "html_element",
+          },
+        ],
+        "type": "template",
+      },
+    }
+    `
+  );
+});
+
 it("parses custom tags", () => {
   // ARRANGE
   const subject = parse;
