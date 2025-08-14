@@ -7,7 +7,12 @@ type Tree = {
 
 type TemplateNode = {
   type: "template";
-  children: (TwigStatementDirectiveNode | HtmlElementNode | ContentNode)[];
+  children: (
+    | TwigStatementDirectiveNode
+    | HtmlElementNode
+    | ContentNode
+    | HtmlDoctypeNode
+  )[];
 };
 
 type TwigStatementDirectiveNode = {
@@ -53,6 +58,10 @@ type HtmlElementNode = {
   type: "html_element";
   name: string;
   children: (HtmlElementNode | ContentNode)[];
+};
+
+type HtmlDoctypeNode = {
+  type: "doctype";
 };
 
 const parser = new Parser();
@@ -205,6 +214,10 @@ export function parse(content: string): Tree {
       if (htmlElement) {
         allNodes.push(htmlElement);
       }
+    } else if (child.type === "html_doctype") {
+      allNodes.push({
+        type: "doctype",
+      });
     } else {
       const converted = convertNode(child);
       if (converted) {
@@ -225,7 +238,8 @@ export function parse(content: string): Tree {
             | "if"
             | "endif"
             | "content"
-            | "html_element";
+            | "html_element"
+            | "doctype";
           name?: string;
           functionName?: string;
           expression?: string;
@@ -233,11 +247,17 @@ export function parse(content: string): Tree {
         }
       | HtmlElementNode
     >
-  ): (TwigStatementDirectiveNode | HtmlElementNode | ContentNode)[] {
+  ): (
+    | TwigStatementDirectiveNode
+    | HtmlElementNode
+    | ContentNode
+    | HtmlDoctypeNode
+  )[] {
     const result: (
       | TwigStatementDirectiveNode
       | HtmlElementNode
       | ContentNode
+      | HtmlDoctypeNode
     )[] = [];
     const stack: TwigStatementDirectiveNode[] = [];
 
@@ -353,6 +373,21 @@ export function parse(content: string): Tree {
         } else {
           // Add to root level
           result.push(htmlNode);
+        }
+      } else if (node.type === "doctype") {
+        const doctypeNode: HtmlDoctypeNode = {
+          type: "doctype",
+        };
+
+        if (stack.length > 0) {
+          // Add to the current parent's children
+          const parent = stack[stack.length - 1];
+          if (parent && parent.children) {
+            parent.children.push(doctypeNode);
+          }
+        } else {
+          // Add to root level
+          result.push(doctypeNode);
         }
       }
     }
