@@ -59,9 +59,16 @@ type TwigFunctionNode = {
   name: string;
 };
 
+type HtmlAttributeNode = {
+  type: "html_attribute";
+  name: string;
+  value?: string;
+};
+
 type HtmlElementNode = {
   type: "html_element";
   name: string;
+  attributes?: HtmlAttributeNode[];
   children: (HtmlElementNode | ContentNode)[];
 };
 
@@ -193,6 +200,49 @@ export function parse(content: string): Tree {
       );
       if (!tagName) return null;
 
+      // Parse attributes from the start tag
+      const attributes: HtmlAttributeNode[] = [];
+      const attributeNodes = startTag.children.filter(
+        (child: any) => child.type === "html_attribute"
+      );
+
+      for (const attrNode of attributeNodes) {
+        const nameNode = attrNode.children.find(
+          (child: any) => child.type === "html_attribute_name"
+        );
+        if (!nameNode) continue;
+
+        const valueNode = attrNode.children.find(
+          (child: any) => child.type === "html_attribute_value"
+        );
+        const quotedValueNode = attrNode.children.find(
+          (child: any) => child.type === "html_quoted_attribute_value"
+        );
+
+        let value: string | undefined;
+        if (quotedValueNode) {
+          // For quoted values, find the inner html_attribute_value
+          const innerValueNode = quotedValueNode.children.find(
+            (child: any) => child.type === "html_attribute_value"
+          );
+          value = innerValueNode ? innerValueNode.text : undefined;
+        } else if (valueNode) {
+          value = valueNode.text;
+        }
+
+        const attribute: HtmlAttributeNode = {
+          type: "html_attribute",
+          name: nameNode.text,
+        };
+
+        // Only include value property if there's actually a value
+        if (value !== undefined) {
+          attribute.value = value;
+        }
+
+        attributes.push(attribute);
+      }
+
       const elementChildren: (HtmlElementNode | ContentNode)[] = [];
 
       // Process all children that are not start/end tags
@@ -210,11 +260,17 @@ export function parse(content: string): Tree {
         }
       }
 
-      return {
+      const result: HtmlElementNode = {
         type: "html_element",
         name: tagName.text,
         children: elementChildren,
       };
+
+      if (attributes.length > 0) {
+        result.attributes = attributes;
+      }
+
+      return result;
     }
     return null;
   }
