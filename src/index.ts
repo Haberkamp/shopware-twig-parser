@@ -21,7 +21,12 @@ type TwigStatementDirectiveNode = {
   variable?: TwigVariableNode;
   function?: TwigFunctionNode;
   condition?: TwigConditionNode;
-  children?: (TwigStatementDirectiveNode | ContentNode)[];
+  children?: (
+    | TwigStatementDirectiveNode
+    | ContentNode
+    | HtmlElementNode
+    | HtmlDoctypeNode
+  )[];
 };
 
 type TwigConditionNode = {
@@ -156,13 +161,24 @@ export function parse(content: string): Tree {
   }[] = [];
 
   // Also collect content nodes
-  const allNodes: Array<{
-    type: "block" | "endblock" | "function" | "if" | "endif" | "content";
-    name?: string;
-    functionName?: string;
-    expression?: string;
-    content?: string;
-  }> = [];
+  const allNodes: Array<
+    | {
+        type:
+          | "block"
+          | "endblock"
+          | "function"
+          | "if"
+          | "endif"
+          | "content"
+          | "html_element"
+          | "doctype";
+        name?: string;
+        functionName?: string;
+        expression?: string;
+        content?: string;
+      }
+    | HtmlElementNode
+  > = [];
 
   function convertHtmlElement(node: any): HtmlElementNode | null {
     if (node.type === "html_element") {
