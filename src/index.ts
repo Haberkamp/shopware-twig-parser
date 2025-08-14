@@ -70,6 +70,7 @@ type HtmlElementNode = {
   name: string;
   attributes?: HtmlAttributeNode[];
   children: (HtmlElementNode | ContentNode)[];
+  void?: boolean;
 };
 
 type HtmlDoctypeNode = {
@@ -189,20 +190,34 @@ export function parse(content: string): Tree {
 
   function convertHtmlElement(node: any): HtmlElementNode | null {
     if (node.type === "html_element") {
+      // Check for self-closing tag first
+      const selfClosingTag = node.children.find(
+        (child: any) => child.type === "html_self_closing_tag"
+      );
+
       // Find the start tag to get the element name
       const startTag = node.children.find(
         (child: any) => child.type === "html_start_tag"
       );
-      if (!startTag) return null;
 
-      const tagName = startTag.children.find(
+      // Use self-closing tag if available, otherwise start tag
+      const tagToUse = selfClosingTag || startTag;
+      if (!tagToUse) return null;
+
+      const tagName = tagToUse.children.find(
         (child: any) => child.type === "html_tag_name"
       );
       if (!tagName) return null;
 
-      // Parse attributes from the start tag
+      // Check if this is a void element (no end tag and not self-closing)
+      const hasEndTag = node.children.some(
+        (child: any) => child.type === "html_end_tag"
+      );
+      const isVoid = !hasEndTag;
+
+      // Parse attributes from the tag (either self-closing or start tag)
       const attributes: HtmlAttributeNode[] = [];
-      const attributeNodes = startTag.children.filter(
+      const attributeNodes = tagToUse.children.filter(
         (child: any) => child.type === "html_attribute"
       );
 
@@ -268,6 +283,10 @@ export function parse(content: string): Tree {
 
       if (attributes.length > 0) {
         result.attributes = attributes;
+      }
+
+      if (isVoid) {
+        result.void = true;
       }
 
       return result;

@@ -94,3 +94,64 @@ it("parses nested html elements", () => {
     `
   );
 });
+
+it("parses void tags", () => {
+  // ARRANGE
+  const subject = parse;
+
+  // ACT
+  const result = subject("<br>");
+
+  // ASSERT
+  expect(result).toMatchInlineSnapshot(
+    `
+    {
+      "rootNode": {
+        "children": [
+          {
+            "children": [],
+            "name": "br",
+            "type": "html_element",
+            "void": true,
+          },
+        ],
+        "type": "template",
+      },
+    }
+  `
+  );
+});
+
+it("parses self closing tags", () => {
+  // ARRANGE
+  const subject = parse;
+
+  // ACT
+  const result = subject('<input type="text" />');
+
+  // ASSERT
+  expect(result).toMatchInlineSnapshot(
+    `
+    {
+      "rootNode": {
+        "children": [
+          {
+            "attributes": [
+              {
+                "name": "type",
+                "type": "html_attribute",
+                "value": "text",
+              },
+            ],
+            "children": [],
+            "name": "input",
+            "type": "html_element",
+            "void": true,
+          },
+        ],
+        "type": "template",
+      },
+    }
+  `
+  );
+});
