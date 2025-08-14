@@ -1,5 +1,11 @@
 # shopware-twig-parser
 
+## 0.3.1
+
+### Patch Changes
+
+- 454cbc7: parse self closing tags and content after on the same level
+
 ## 0.3.0
 
 ### Minor Changes
