@@ -29,3 +29,27 @@ it("parses html tags", () => {
     }
   `);
 });
+
+it("parses empty html elements", () => {
+  // ARRANGE
+  const subject = parse;
+
+  // ACT
+  const result = subject("<p></p>");
+
+  // ASSERT
+  expect(result).toMatchInlineSnapshot(`
+    {
+      "rootNode": {
+        "children": [
+          {
+            "children": [],
+            "name": "p",
+            "type": "html_element",
+          },
+        ],
+        "type": "template",
+      },
+    }
+  `);
+});
