@@ -1,5 +1,11 @@
 # shopware-twig-parser
 
+## 0.3.2
+
+### Patch Changes
+
+- cecf152: parse attributes of void tags
+
 ## 0.3.1
 
 ### Patch Changes
