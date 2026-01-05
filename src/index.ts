@@ -15,6 +15,7 @@ type TemplateNode = {
     | HtmlNamedEntityNode
     | HtmlNumericEntityNode
     | TwigCommentNode
+    | VueInterpolationNode
   )[];
 };
 
@@ -32,6 +33,7 @@ type TwigStatementDirectiveNode = {
     | HtmlNamedEntityNode
     | HtmlNumericEntityNode
     | TwigCommentNode
+    | VueInterpolationNode
   )[];
 };
 
@@ -81,6 +83,7 @@ type HtmlElementNode = {
     | HtmlNamedEntityNode
     | HtmlNumericEntityNode
     | TwigCommentNode
+    | VueInterpolationNode
   )[];
   void?: boolean;
 };
@@ -102,6 +105,11 @@ type HtmlNumericEntityNode = {
 type TwigCommentNode = {
   type: "twig_comment";
   content: string;
+};
+
+type VueInterpolationNode = {
+  type: "vue_interpolation";
+  expression: string;
 };
 
 const parser = new Parser();
@@ -216,6 +224,7 @@ export function parse(content: string): Tree {
     | HtmlNamedEntityNode
     | HtmlNumericEntityNode
     | TwigCommentNode
+    | VueInterpolationNode
   > = [];
 
   function convertHtmlEntity(
@@ -248,6 +257,21 @@ export function parse(content: string): Tree {
       return {
         type: "twig_comment",
         content,
+      };
+    }
+    return null;
+  }
+
+  function convertVueInterpolation(node: any): VueInterpolationNode | null {
+    if (node.type === "vue_interpolation") {
+      // Find the interpolation_content child
+      const contentNode = node.children.find(
+        (child: any) => child.type === "interpolation_content"
+      );
+      
+      return {
+        type: "vue_interpolation",
+        expression: contentNode ? contentNode.text.trim() : "",
       };
     }
     return null;
@@ -364,6 +388,7 @@ export function parse(content: string): Tree {
         | HtmlNamedEntityNode
         | HtmlNumericEntityNode
         | TwigCommentNode
+        | VueInterpolationNode
       )[] = [];
 
       // Process all children that are not start/end tags
@@ -387,6 +412,11 @@ export function parse(content: string): Tree {
           const commentNode = convertTwigComment(child);
           if (commentNode) {
             elementChildren.push(commentNode);
+          }
+        } else if (child.type === "vue_interpolation") {
+          const interpolationNode = convertVueInterpolation(child);
+          if (interpolationNode) {
+            elementChildren.push(interpolationNode);
           }
         }
       }
@@ -435,6 +465,11 @@ export function parse(content: string): Tree {
       if (commentNode) {
         allNodes.push(commentNode);
       }
+    } else if (child.type === "vue_interpolation") {
+      const interpolationNode = convertVueInterpolation(child);
+      if (interpolationNode) {
+        allNodes.push(interpolationNode);
+      }
     } else {
       const converted = convertNode(child);
       if (converted) {
@@ -466,6 +501,7 @@ export function parse(content: string): Tree {
       | HtmlNamedEntityNode
       | HtmlNumericEntityNode
       | TwigCommentNode
+      | VueInterpolationNode
     >
   ): (
     | TwigStatementDirectiveNode
@@ -475,6 +511,7 @@ export function parse(content: string): Tree {
     | HtmlNamedEntityNode
     | HtmlNumericEntityNode
     | TwigCommentNode
+    | VueInterpolationNode
   )[] {
     const result: (
       | TwigStatementDirectiveNode
@@ -484,6 +521,7 @@ export function parse(content: string): Tree {
       | HtmlNamedEntityNode
       | HtmlNumericEntityNode
       | TwigCommentNode
+      | VueInterpolationNode
     )[] = [];
     const stack: TwigStatementDirectiveNode[] = [];
 
@@ -653,6 +691,19 @@ export function parse(content: string): Tree {
         } else {
           // Add to root level
           result.push(commentNode);
+        }
+      } else if (node.type === "vue_interpolation" && "expression" in node) {
+        const interpolationNode = node as VueInterpolationNode;
+
+        if (stack.length > 0) {
+          // Add to the current parent's children
+          const parent = stack[stack.length - 1];
+          if (parent && parent.children) {
+            parent.children.push(interpolationNode);
+          }
+        } else {
+          // Add to root level
+          result.push(interpolationNode);
         }
       }
     }
