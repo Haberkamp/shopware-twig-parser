@@ -84,6 +84,7 @@ type HtmlElementNode = {
     | HtmlNumericEntityNode
     | TwigCommentNode
     | VueInterpolationNode
+    | TwigStatementDirectiveNode
   )[];
   void?: boolean;
 };
@@ -116,84 +117,84 @@ const parser = new Parser();
 // @ts-expect-error
 parser.setLanguage(ShopwareTwig);
 
-export function parse(content: string): Tree {
-  const tree = parser.parse(content);
-
-  function convertNode(node: any): {
-    type: "block" | "endblock" | "function" | "if" | "endif";
-    name?: string;
-    functionName?: string;
-    expression?: string;
-  } | null {
-    if (node.type === "statement_directive") {
-      // Check for if_statement
-      const ifStatement = node.children.find(
-        (child: any) => child.type === "if_statement"
+function convertStatementDirective(node: any): {
+  type: "block" | "endblock" | "function" | "if" | "endif";
+  name?: string;
+  functionName?: string;
+  expression?: string;
+} | null {
+  if (node.type === "statement_directive") {
+    // Check for if_statement
+    const ifStatement = node.children.find(
+      (child: any) => child.type === "if_statement"
+    );
+    if (ifStatement) {
+      const conditionalNode = ifStatement.children.find(
+        (child: any) => child.type === "conditional"
       );
-      if (ifStatement) {
-        const conditionalNode = ifStatement.children.find(
-          (child: any) => child.type === "conditional"
-        );
-        const variableNode = ifStatement.children.find(
-          (child: any) => child.type === "variable"
-        );
-
-        if (conditionalNode && conditionalNode.text === "if" && variableNode) {
-          return {
-            type: "if",
-            expression: variableNode.text,
-          };
-        }
-      }
-
-      // Check for tag_statement
-      const tagStatement = node.children.find(
-        (child: any) => child.type === "tag_statement"
-      );
-      const functionCall = node.children.find(
-        (child: any) => child.type === "function_call"
+      const variableNode = ifStatement.children.find(
+        (child: any) => child.type === "variable"
       );
 
-      if (tagStatement) {
-        const tagNode = tagStatement.children.find(
-          (child: any) => child.type === "tag"
-        );
-        const conditionalNode = tagStatement.children.find(
-          (child: any) => child.type === "conditional"
-        );
-        const variableNode = tagStatement.children.find(
-          (child: any) => child.type === "variable"
-        );
-
-        if (tagNode && tagNode.text === "block" && variableNode) {
-          return {
-            type: "block",
-            name: variableNode.text,
-          };
-        } else if (tagNode && tagNode.text === "endblock") {
-          return {
-            type: "endblock",
-          };
-        } else if (conditionalNode && conditionalNode.text === "endif") {
-          return {
-            type: "endif",
-          };
-        }
-      } else if (functionCall) {
-        const functionIdentifier = functionCall.children.find(
-          (child: any) => child.type === "function_identifier"
-        );
-
-        if (functionIdentifier) {
-          return {
-            type: "function",
-            functionName: functionIdentifier.text,
-          };
-        }
+      if (conditionalNode && conditionalNode.text === "if" && variableNode) {
+        return {
+          type: "if",
+          expression: variableNode.text,
+        };
       }
     }
-    return null;
+
+    // Check for tag_statement
+    const tagStatement = node.children.find(
+      (child: any) => child.type === "tag_statement"
+    );
+    const functionCall = node.children.find(
+      (child: any) => child.type === "function_call"
+    );
+
+    if (tagStatement) {
+      const tagNode = tagStatement.children.find(
+        (child: any) => child.type === "tag"
+      );
+      const conditionalNode = tagStatement.children.find(
+        (child: any) => child.type === "conditional"
+      );
+      const variableNode = tagStatement.children.find(
+        (child: any) => child.type === "variable"
+      );
+
+      if (tagNode && tagNode.text === "block" && variableNode) {
+        return {
+          type: "block",
+          name: variableNode.text,
+        };
+      } else if (tagNode && tagNode.text === "endblock") {
+        return {
+          type: "endblock",
+        };
+      } else if (conditionalNode && conditionalNode.text === "endif") {
+        return {
+          type: "endif",
+        };
+      }
+    } else if (functionCall) {
+      const functionIdentifier = functionCall.children.find(
+        (child: any) => child.type === "function_identifier"
+      );
+
+      if (functionIdentifier) {
+        return {
+          type: "function",
+          functionName: functionIdentifier.text,
+        };
+      }
+    }
   }
+  return null;
+}
+
+export function parse(content: string): Tree {
+  const tree = parser.parse(content);
 
   // First pass: convert all nodes to intermediate format
   const rawNodes: {
@@ -275,6 +276,190 @@ export function parse(content: string): Tree {
       };
     }
     return null;
+  }
+
+  function buildNestedStructureForElement(
+    nodes: Array<
+      | {
+          type:
+            | "block"
+            | "endblock"
+            | "function"
+            | "if"
+            | "endif"
+            | "content"
+            | "html_element";
+          name?: string;
+          functionName?: string;
+          expression?: string;
+          content?: string;
+        }
+      | HtmlElementNode
+      | HtmlNamedEntityNode
+      | HtmlNumericEntityNode
+      | TwigCommentNode
+      | VueInterpolationNode
+    >
+  ): (
+    | HtmlElementNode
+    | ContentNode
+    | TwigStatementDirectiveNode
+    | TwigCommentNode
+    | VueInterpolationNode
+    | HtmlNamedEntityNode
+    | HtmlNumericEntityNode
+  )[] {
+    const result: (
+      | HtmlElementNode
+      | ContentNode
+      | TwigStatementDirectiveNode
+      | TwigCommentNode
+      | VueInterpolationNode
+      | HtmlNamedEntityNode
+      | HtmlNumericEntityNode
+    )[] = [];
+    const stack: TwigStatementDirectiveNode[] = [];
+
+    for (const node of nodes) {
+      if (node.type === "block") {
+        const blockNode: TwigStatementDirectiveNode = {
+          type: "twig_statement_directive",
+          tag: {
+            type: "twig_tag",
+            name: "block",
+          },
+          variable: {
+            type: "twig_variable",
+            content: node.name!,
+          },
+          children: [],
+        };
+
+        if (stack.length > 0) {
+          const parent = stack[stack.length - 1];
+          if (parent && parent.children) {
+            parent.children.push(blockNode);
+          }
+        } else {
+          result.push(blockNode);
+        }
+        stack.push(blockNode);
+      } else if (node.type === "endblock") {
+        stack.pop();
+      } else if (node.type === "if") {
+        const ifNode: TwigStatementDirectiveNode = {
+          type: "twig_statement_directive",
+          condition: {
+            type: "twig_condition",
+            expression: {
+              type: "twig_expression",
+              content: node.expression!,
+            },
+          },
+          children: [],
+        };
+
+        if (stack.length > 0) {
+          const parent = stack[stack.length - 1];
+          if (parent && parent.children) {
+            parent.children.push(ifNode);
+          }
+        } else {
+          result.push(ifNode);
+        }
+        stack.push(ifNode);
+      } else if (node.type === "endif") {
+        stack.pop();
+      } else if (node.type === "function") {
+        const functionNode: TwigStatementDirectiveNode = {
+          type: "twig_statement_directive",
+          function: {
+            type: "twig_function",
+            name: node.functionName!,
+          },
+        };
+
+        if (stack.length > 0) {
+          const parent = stack[stack.length - 1];
+          if (parent && parent.children) {
+            parent.children.push(functionNode);
+          }
+        } else {
+          result.push(functionNode);
+        }
+      } else if (node.type === "content") {
+        const contentNode: ContentNode = {
+          type: "content",
+          content: node.content!,
+        };
+
+        if (stack.length > 0) {
+          const parent = stack[stack.length - 1];
+          if (parent && parent.children) {
+            parent.children.push(contentNode);
+          }
+        } else {
+          result.push(contentNode);
+        }
+      } else if (node.type === "html_element" && "name" in node) {
+        const htmlNode = node as HtmlElementNode;
+
+        if (stack.length > 0) {
+          const parent = stack[stack.length - 1];
+          if (parent && parent.children) {
+            parent.children.push(htmlNode);
+          }
+        } else {
+          result.push(htmlNode);
+        }
+      } else if (node.type === "html_named_entity" && "content" in node) {
+        const entityNode = node as HtmlNamedEntityNode;
+
+        if (stack.length > 0) {
+          const parent = stack[stack.length - 1];
+          if (parent && parent.children) {
+            parent.children.push(entityNode);
+          }
+        } else {
+          result.push(entityNode);
+        }
+      } else if (node.type === "html_numeric_entity" && "content" in node) {
+        const entityNode = node as HtmlNumericEntityNode;
+
+        if (stack.length > 0) {
+          const parent = stack[stack.length - 1];
+          if (parent && parent.children) {
+            parent.children.push(entityNode);
+          }
+        } else {
+          result.push(entityNode);
+        }
+      } else if (node.type === "twig_comment" && "content" in node) {
+        const commentNode = node as TwigCommentNode;
+
+        if (stack.length > 0) {
+          const parent = stack[stack.length - 1];
+          if (parent && parent.children) {
+            parent.children.push(commentNode);
+          }
+        } else {
+          result.push(commentNode);
+        }
+      } else if (node.type === "vue_interpolation" && "expression" in node) {
+        const interpolationNode = node as VueInterpolationNode;
+
+        if (stack.length > 0) {
+          const parent = stack[stack.length - 1];
+          if (parent && parent.children) {
+            parent.children.push(interpolationNode);
+          }
+        } else {
+          result.push(interpolationNode);
+        }
+      }
+    }
+
+    return result;
   }
 
   function convertHtmlElement(node: any): HtmlElementNode | null {
@@ -382,44 +567,66 @@ export function parse(content: string): Tree {
         attributes.push(attribute);
       }
 
-      const elementChildren: (
+      // Collect raw children first (before nesting processing)
+      const rawChildren: Array<
+        | {
+            type:
+              | "block"
+              | "endblock"
+              | "function"
+              | "if"
+              | "endif"
+              | "content"
+              | "html_element";
+            name?: string;
+            functionName?: string;
+            expression?: string;
+            content?: string;
+          }
         | HtmlElementNode
-        | ContentNode
         | HtmlNamedEntityNode
         | HtmlNumericEntityNode
         | TwigCommentNode
         | VueInterpolationNode
-      )[] = [];
+      > = [];
 
       // Process all children that are not start/end tags
       for (const child of node.children) {
         if (child.type === "content") {
-          elementChildren.push({
+          rawChildren.push({
             type: "content",
             content: child.text,
           });
         } else if (child.type === "html_element") {
           const nestedElement = convertHtmlElement(child);
           if (nestedElement) {
-            elementChildren.push(nestedElement);
+            rawChildren.push(nestedElement);
           }
         } else if (child.type === "html_entity") {
           const entityNode = convertHtmlEntity(child);
           if (entityNode) {
-            elementChildren.push(entityNode);
+            rawChildren.push(entityNode);
           }
         } else if (child.type === "twig_comment") {
           const commentNode = convertTwigComment(child);
           if (commentNode) {
-            elementChildren.push(commentNode);
+            rawChildren.push(commentNode);
           }
         } else if (child.type === "vue_interpolation") {
           const interpolationNode = convertVueInterpolation(child);
           if (interpolationNode) {
-            elementChildren.push(interpolationNode);
+            rawChildren.push(interpolationNode);
+          }
+        } else if (child.type === "statement_directive") {
+          const converted = convertStatementDirective(child);
+          if (converted) {
+            rawChildren.push(converted);
           }
         }
       }
+
+      // Apply block nesting within this HTML element's scope
+      const elementChildren = buildNestedStructureForElement(rawChildren);
 
       const result: HtmlElementNode = {
         type: "html_element",
@@ -471,7 +678,7 @@ export function parse(content: string): Tree {
         allNodes.push(interpolationNode);
       }
     } else {
-      const converted = convertNode(child);
+      const converted = convertStatementDirective(child);
       if (converted) {
         rawNodes.push(converted);
         allNodes.push(converted);
