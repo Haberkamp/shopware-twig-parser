@@ -462,6 +462,89 @@ export function parse(content: string): Tree {
     return result;
   }
 
+  function convertScriptElement(node: any): HtmlElementNode | null {
+    if (node.type !== "script_element" && node.type !== "style_element") {
+      return null;
+    }
+
+    // Find the start tag
+    const startTag = node.children.find(
+      (child: any) => child.type === "html_start_tag"
+    );
+    if (!startTag) return null;
+
+    const tagName = startTag.children.find(
+      (child: any) => child.type === "html_tag_name"
+    );
+    if (!tagName) return null;
+
+    // Parse attributes
+    const attributes: HtmlAttributeNode[] = [];
+    const attributeNodes = startTag.children.filter(
+      (child: any) => child.type === "html_attribute"
+    );
+
+    for (const attrNode of attributeNodes) {
+      const nameNode = attrNode.children.find(
+        (child: any) => child.type === "html_attribute_name"
+      );
+      if (!nameNode) continue;
+
+      const valueNode = attrNode.children.find(
+        (child: any) => child.type === "html_attribute_value"
+      );
+      const quotedValueNode = attrNode.children.find(
+        (child: any) => child.type === "html_quoted_attribute_value"
+      );
+
+      let value: string | undefined;
+      if (quotedValueNode) {
+        const innerValueNode = quotedValueNode.children.find(
+          (child: any) => child.type === "html_attribute_value"
+        );
+        value = innerValueNode ? innerValueNode.text : undefined;
+      } else if (valueNode) {
+        value = valueNode.text;
+      }
+
+      const attribute: HtmlAttributeNode = {
+        type: "html_attribute",
+        name: nameNode.text,
+      };
+
+      if (value !== undefined) {
+        attribute.value = value;
+      }
+
+      attributes.push(attribute);
+    }
+
+    // Get raw text content
+    const rawText = node.children.find(
+      (child: any) => child.type === "raw_text"
+    );
+
+    const children: (ContentNode | HtmlElementNode | HtmlNamedEntityNode | HtmlNumericEntityNode | TwigCommentNode | VueInterpolationNode | TwigStatementDirectiveNode)[] = [];
+    if (rawText && rawText.text) {
+      children.push({
+        type: "content",
+        content: rawText.text,
+      });
+    }
+
+    const result: HtmlElementNode = {
+      type: "html_element",
+      name: tagName.text,
+      children,
+    };
+
+    if (attributes.length > 0) {
+      result.attributes = attributes;
+    }
+
+    return result;
+  }
+
   function convertHtmlElement(node: any): HtmlElementNode | null {
     if (node.type === "html_element") {
       // Check for self-closing tag first
@@ -657,6 +740,11 @@ export function parse(content: string): Tree {
       const htmlElement = convertHtmlElement(child);
       if (htmlElement) {
         allNodes.push(htmlElement);
+      }
+    } else if (child.type === "script_element" || child.type === "style_element") {
+      const scriptElement = convertScriptElement(child);
+      if (scriptElement) {
+        allNodes.push(scriptElement);
       }
     } else if (child.type === "html_doctype") {
       allNodes.push({
