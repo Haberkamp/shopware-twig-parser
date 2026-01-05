@@ -14,6 +14,7 @@ type TemplateNode = {
     | HtmlDoctypeNode
     | HtmlNamedEntityNode
     | HtmlNumericEntityNode
+    | TwigCommentNode
   )[];
 };
 
@@ -30,6 +31,7 @@ type TwigStatementDirectiveNode = {
     | HtmlDoctypeNode
     | HtmlNamedEntityNode
     | HtmlNumericEntityNode
+    | TwigCommentNode
   )[];
 };
 
@@ -78,6 +80,7 @@ type HtmlElementNode = {
     | ContentNode
     | HtmlNamedEntityNode
     | HtmlNumericEntityNode
+    | TwigCommentNode
   )[];
   void?: boolean;
 };
@@ -93,6 +96,11 @@ type HtmlNamedEntityNode = {
 
 type HtmlNumericEntityNode = {
   type: "html_numeric_entity";
+  content: string;
+};
+
+type TwigCommentNode = {
+  type: "twig_comment";
   content: string;
 };
 
@@ -207,6 +215,7 @@ export function parse(content: string): Tree {
     | HtmlElementNode
     | HtmlNamedEntityNode
     | HtmlNumericEntityNode
+    | TwigCommentNode
   > = [];
 
   function convertHtmlEntity(
@@ -227,6 +236,19 @@ export function parse(content: string): Tree {
           content: entityText,
         };
       }
+    }
+    return null;
+  }
+
+  function convertTwigComment(node: any): TwigCommentNode | null {
+    if (node.type === "twig_comment") {
+      // Extract content between {# and #}
+      const text = node.text;
+      const content = text.slice(2, -2).trim();
+      return {
+        type: "twig_comment",
+        content,
+      };
     }
     return null;
   }
@@ -341,6 +363,7 @@ export function parse(content: string): Tree {
         | ContentNode
         | HtmlNamedEntityNode
         | HtmlNumericEntityNode
+        | TwigCommentNode
       )[] = [];
 
       // Process all children that are not start/end tags
@@ -359,6 +382,11 @@ export function parse(content: string): Tree {
           const entityNode = convertHtmlEntity(child);
           if (entityNode) {
             elementChildren.push(entityNode);
+          }
+        } else if (child.type === "twig_comment") {
+          const commentNode = convertTwigComment(child);
+          if (commentNode) {
+            elementChildren.push(commentNode);
           }
         }
       }
@@ -402,6 +430,11 @@ export function parse(content: string): Tree {
       if (entityNode) {
         allNodes.push(entityNode);
       }
+    } else if (child.type === "twig_comment") {
+      const commentNode = convertTwigComment(child);
+      if (commentNode) {
+        allNodes.push(commentNode);
+      }
     } else {
       const converted = convertNode(child);
       if (converted) {
@@ -432,6 +465,7 @@ export function parse(content: string): Tree {
       | HtmlElementNode
       | HtmlNamedEntityNode
       | HtmlNumericEntityNode
+      | TwigCommentNode
     >
   ): (
     | TwigStatementDirectiveNode
@@ -440,6 +474,7 @@ export function parse(content: string): Tree {
     | HtmlDoctypeNode
     | HtmlNamedEntityNode
     | HtmlNumericEntityNode
+    | TwigCommentNode
   )[] {
     const result: (
       | TwigStatementDirectiveNode
@@ -448,6 +483,7 @@ export function parse(content: string): Tree {
       | HtmlDoctypeNode
       | HtmlNamedEntityNode
       | HtmlNumericEntityNode
+      | TwigCommentNode
     )[] = [];
     const stack: TwigStatementDirectiveNode[] = [];
 
@@ -604,6 +640,19 @@ export function parse(content: string): Tree {
         } else {
           // Add to root level
           result.push(entityNode);
+        }
+      } else if (node.type === "twig_comment" && "content" in node) {
+        const commentNode = node as TwigCommentNode;
+
+        if (stack.length > 0) {
+          // Add to the current parent's children
+          const parent = stack[stack.length - 1];
+          if (parent && parent.children) {
+            parent.children.push(commentNode);
+          }
+        } else {
+          // Add to root level
+          result.push(commentNode);
         }
       }
     }
