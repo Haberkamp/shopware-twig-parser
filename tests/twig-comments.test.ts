@@ -2,8 +2,14 @@ import { it, expect } from "vitest";
 import { parse } from "../src/index.js";
 
 it("parses a simple twig comment", () => {
-  const result = parse("{# This is a comment #}");
+  // ARRANGE
+  const subject = parse;
+  const input = "{# This is a comment #}";
 
+  // ACT
+  const result = subject(input);
+
+  // ASSERT
   expect(result).toMatchInlineSnapshot(`
     {
       "rootNode": {
@@ -20,9 +26,15 @@ it("parses a simple twig comment", () => {
 });
 
 it("parses a multiline twig comment", () => {
-  const result = parse(`{# This is a
-   multiline comment #}`);
+  // ARRANGE
+  const subject = parse;
+  const input = `{# This is a
+   multiline comment #}`;
 
+  // ACT
+  const result = subject(input);
+
+  // ASSERT
   expect(result).toMatchInlineSnapshot(`
     {
       "rootNode": {
@@ -40,8 +52,14 @@ it("parses a multiline twig comment", () => {
 });
 
 it("parses deprecated annotation in twig comment", () => {
-  const result = parse("{# @deprecated tag:v6.8.0 - Use `mt-button` instead. #}");
+  // ARRANGE
+  const subject = parse;
+  const input = "{# @deprecated tag:v6.8.0 - Use `mt-button` instead. #}";
 
+  // ACT
+  const result = subject(input);
+
+  // ASSERT
   expect(result).toMatchInlineSnapshot(`
     {
       "rootNode": {
@@ -58,8 +76,14 @@ it("parses deprecated annotation in twig comment", () => {
 });
 
 it("parses twig comment inside HTML element", () => {
-  const result = parse("<div>{# comment #}</div>");
+  // ARRANGE
+  const subject = parse;
+  const input = "<div>{# comment #}</div>";
 
+  // ACT
+  const result = subject(input);
+
+  // ASSERT
   expect(result).toMatchInlineSnapshot(`
     {
       "rootNode": {
@@ -82,8 +106,14 @@ it("parses twig comment inside HTML element", () => {
 });
 
 it("parses twig comment inline with text", () => {
-  const result = parse("<p>You can also comment out {# part of a line #}.</p>");
+  // ARRANGE
+  const subject = parse;
+  const input = "<p>You can also comment out {# part of a line #}.</p>";
 
+  // ACT
+  const result = subject(input);
+
+  // ASSERT
   expect(result).toMatchInlineSnapshot(`
     {
       "rootNode": {
@@ -114,9 +144,15 @@ it("parses twig comment inline with text", () => {
 });
 
 it("parses twig comment before twig block", () => {
-  const result = parse(`{# Comment #}
-{% block foo %}{% endblock %}`);
+  // ARRANGE
+  const subject = parse;
+  const input = `{# Comment #}
+{% block foo %}{% endblock %}`;
 
+  // ACT
+  const result = subject(input);
+
+  // ASSERT
   expect(result).toMatchInlineSnapshot(`
     {
       "rootNode": {
@@ -145,8 +181,14 @@ it("parses twig comment before twig block", () => {
 });
 
 it("parses empty twig comment", () => {
-  const result = parse("{##}");
+  // ARRANGE
+  const subject = parse;
+  const input = "{##}";
 
+  // ACT
+  const result = subject(input);
+
+  // ASSERT
   expect(result).toMatchInlineSnapshot(`
     {
       "rootNode": {
