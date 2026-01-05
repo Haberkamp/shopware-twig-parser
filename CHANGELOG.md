@@ -1,5 +1,27 @@
 # shopware-twig-parser
 
+## 0.4.0
+
+### Minor Changes
+
+- 7319c7c: Add support for Twig comments
+
+  Twig comments (`{# ... #}`) are now parsed as `twig_comment` nodes with the comment content extracted. Comments are preserved at root level, inside HTML elements, and inside Twig blocks.
+
+- 6b6d90d: Add support for Twig blocks inside HTML elements
+
+  HTML elements containing Twig blocks now correctly preserve the parent element structure. Previously, the parent HTML element would be lost when it contained `{% block %}` directives.
+
+- c77bb7d: Add support for Vue interpolation
+
+  Vue template expressions (`{{ expression }}`) are now parsed as `vue_interpolation` nodes. Supports standalone interpolation, mixed content with text, and complex expressions like ternaries and function calls.
+
+### Patch Changes
+
+- 05fc1cd: Upgrade tree-sitter-shopware-twig to v1.1.0
+
+  Updates the underlying grammar to support vue_interpolation and twig_comment node types.
+
 ## 0.3.2
 
 ### Patch Changes
