@@ -1,5 +1,11 @@
 # shopware-twig-parser
 
+## 0.5.0
+
+### Minor Changes
+
+- ca2f9ef: Add `loc` property to all AST nodes with position information (line and column). Uses ESTree-style format: `loc: { start: { line, column }, end: { line, column } }` where line is 1-based and column is 0-based.
+
 ## 0.4.0
 
 ### Minor Changes
