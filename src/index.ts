@@ -1,12 +1,23 @@
 import Parser from "tree-sitter";
 import ShopwareTwig from "tree-sitter-shopware-twig";
 
+type Position = {
+  line: number;   // 1-based
+  column: number; // 0-based
+};
+
+type SourceLocation = {
+  start: Position;
+  end: Position;
+};
+
 type Tree = {
   rootNode: TemplateNode;
 };
 
 type TemplateNode = {
   type: "template";
+  loc: SourceLocation;
   children: (
     | TwigStatementDirectiveNode
     | HtmlElementNode
@@ -21,6 +32,7 @@ type TemplateNode = {
 
 type TwigStatementDirectiveNode = {
   type: "twig_statement_directive";
+  loc: SourceLocation;
   tag?: TwigTagNode;
   variable?: TwigVariableNode;
   function?: TwigFunctionNode;
@@ -39,42 +51,50 @@ type TwigStatementDirectiveNode = {
 
 type TwigConditionNode = {
   type: "twig_condition";
+  loc: SourceLocation;
   expression: TwigExpressionNode;
 };
 
 type TwigExpressionNode = {
   type: "twig_expression";
+  loc: SourceLocation;
   content: string;
 };
 
 type ContentNode = {
   type: "content";
+  loc: SourceLocation;
   content: string;
 };
 
 type TwigTagNode = {
   type: "twig_tag";
+  loc: SourceLocation;
   name: string;
 };
 
 type TwigVariableNode = {
   type: "twig_variable";
+  loc: SourceLocation;
   content: string;
 };
 
 type TwigFunctionNode = {
   type: "twig_function";
+  loc: SourceLocation;
   name: string;
 };
 
 type HtmlAttributeNode = {
   type: "html_attribute";
+  loc: SourceLocation;
   name: string;
   value?: string;
 };
 
 type HtmlElementNode = {
   type: "html_element";
+  loc: SourceLocation;
   name: string;
   attributes?: HtmlAttributeNode[];
   children: (
@@ -91,25 +111,30 @@ type HtmlElementNode = {
 
 type HtmlDoctypeNode = {
   type: "doctype";
+  loc: SourceLocation;
 };
 
 type HtmlNamedEntityNode = {
   type: "html_named_entity";
+  loc: SourceLocation;
   content: string;
 };
 
 type HtmlNumericEntityNode = {
   type: "html_numeric_entity";
+  loc: SourceLocation;
   content: string;
 };
 
 type TwigCommentNode = {
   type: "twig_comment";
+  loc: SourceLocation;
   content: string;
 };
 
 type VueInterpolationNode = {
   type: "vue_interpolation";
+  loc: SourceLocation;
   expression: string;
 };
 
@@ -117,13 +142,33 @@ const parser = new Parser();
 // @ts-expect-error
 parser.setLanguage(ShopwareTwig);
 
+function getLoc(node: any): SourceLocation {
+  return {
+    start: {
+      line: node.startPosition.row + 1,
+      column: node.startPosition.column,
+    },
+    end: {
+      line: node.endPosition.row + 1,
+      column: node.endPosition.column,
+    },
+  };
+}
+
 function convertStatementDirective(node: any): {
   type: "block" | "endblock" | "function" | "if" | "endif";
+  loc: SourceLocation;
   name?: string;
   functionName?: string;
   expression?: string;
+  expressionLoc?: SourceLocation;
+  tagLoc?: SourceLocation;
+  variableLoc?: SourceLocation;
+  functionLoc?: SourceLocation;
 } | null {
   if (node.type === "statement_directive") {
+    const loc = getLoc(node);
+    
     // Check for if_statement
     const ifStatement = node.children.find(
       (child: any) => child.type === "if_statement"
@@ -139,7 +184,9 @@ function convertStatementDirective(node: any): {
       if (conditionalNode && conditionalNode.text === "if" && variableNode) {
         return {
           type: "if",
+          loc,
           expression: variableNode.text,
+          expressionLoc: getLoc(variableNode),
         };
       }
     }
@@ -166,15 +213,20 @@ function convertStatementDirective(node: any): {
       if (tagNode && tagNode.text === "block" && variableNode) {
         return {
           type: "block",
+          loc,
           name: variableNode.text,
+          tagLoc: getLoc(tagNode),
+          variableLoc: getLoc(variableNode),
         };
       } else if (tagNode && tagNode.text === "endblock") {
         return {
           type: "endblock",
+          loc,
         };
       } else if (conditionalNode && conditionalNode.text === "endif") {
         return {
           type: "endif",
+          loc,
         };
       }
     } else if (functionCall) {
@@ -185,7 +237,9 @@ function convertStatementDirective(node: any): {
       if (functionIdentifier) {
         return {
           type: "function",
+          loc,
           functionName: functionIdentifier.text,
+          functionLoc: getLoc(functionIdentifier),
         };
       }
     }
@@ -199,9 +253,14 @@ export function parse(content: string): Tree {
   // First pass: convert all nodes to intermediate format
   const rawNodes: {
     type: "block" | "endblock" | "function" | "if" | "endif";
+    loc: SourceLocation;
     name?: string;
     functionName?: string;
     expression?: string;
+    expressionLoc?: SourceLocation;
+    tagLoc?: SourceLocation;
+    variableLoc?: SourceLocation;
+    functionLoc?: SourceLocation;
   }[] = [];
 
   // Also collect content nodes
@@ -216,9 +275,14 @@ export function parse(content: string): Tree {
           | "content"
           | "html_element"
           | "doctype";
+        loc: SourceLocation;
         name?: string;
         functionName?: string;
         expression?: string;
+        expressionLoc?: SourceLocation;
+        tagLoc?: SourceLocation;
+        variableLoc?: SourceLocation;
+        functionLoc?: SourceLocation;
         content?: string;
       }
     | HtmlElementNode
@@ -233,16 +297,19 @@ export function parse(content: string): Tree {
   ): HtmlNamedEntityNode | HtmlNumericEntityNode | null {
     if (node.type === "html_entity") {
       const entityText = node.text;
+      const loc = getLoc(node);
 
       // Check if it's a numeric entity (starts with &#)
       if (entityText.startsWith("&#")) {
         return {
           type: "html_numeric_entity",
+          loc,
           content: entityText,
         };
       } else if (entityText.startsWith("&")) {
         return {
           type: "html_named_entity",
+          loc,
           content: entityText,
         };
       }
@@ -257,6 +324,7 @@ export function parse(content: string): Tree {
       const content = text.slice(2, -2).trim();
       return {
         type: "twig_comment",
+        loc: getLoc(node),
         content,
       };
     }
@@ -272,6 +340,7 @@ export function parse(content: string): Tree {
       
       return {
         type: "vue_interpolation",
+        loc: getLoc(node),
         expression: contentNode ? contentNode.text.trim() : "",
       };
     }
@@ -289,9 +358,14 @@ export function parse(content: string): Tree {
             | "endif"
             | "content"
             | "html_element";
+          loc: SourceLocation;
           name?: string;
           functionName?: string;
           expression?: string;
+          expressionLoc?: SourceLocation;
+          tagLoc?: SourceLocation;
+          variableLoc?: SourceLocation;
+          functionLoc?: SourceLocation;
           content?: string;
         }
       | HtmlElementNode
@@ -321,15 +395,18 @@ export function parse(content: string): Tree {
     const stack: TwigStatementDirectiveNode[] = [];
 
     for (const node of nodes) {
-      if (node.type === "block") {
+      if (node.type === "block" && "loc" in node && "tagLoc" in node) {
         const blockNode: TwigStatementDirectiveNode = {
           type: "twig_statement_directive",
+          loc: node.loc,
           tag: {
             type: "twig_tag",
+            loc: node.tagLoc!,
             name: "block",
           },
           variable: {
             type: "twig_variable",
+            loc: node.variableLoc!,
             content: node.name!,
           },
           children: [],
@@ -346,13 +423,16 @@ export function parse(content: string): Tree {
         stack.push(blockNode);
       } else if (node.type === "endblock") {
         stack.pop();
-      } else if (node.type === "if") {
+      } else if (node.type === "if" && "loc" in node && "expressionLoc" in node) {
         const ifNode: TwigStatementDirectiveNode = {
           type: "twig_statement_directive",
+          loc: node.loc,
           condition: {
             type: "twig_condition",
+            loc: node.loc,
             expression: {
               type: "twig_expression",
+              loc: node.expressionLoc!,
               content: node.expression!,
             },
           },
@@ -370,11 +450,13 @@ export function parse(content: string): Tree {
         stack.push(ifNode);
       } else if (node.type === "endif") {
         stack.pop();
-      } else if (node.type === "function") {
+      } else if (node.type === "function" && "loc" in node && "functionLoc" in node) {
         const functionNode: TwigStatementDirectiveNode = {
           type: "twig_statement_directive",
+          loc: node.loc,
           function: {
             type: "twig_function",
+            loc: node.functionLoc!,
             name: node.functionName!,
           },
         };
@@ -387,9 +469,10 @@ export function parse(content: string): Tree {
         } else {
           result.push(functionNode);
         }
-      } else if (node.type === "content") {
+      } else if (node.type === "content" && "loc" in node) {
         const contentNode: ContentNode = {
           type: "content",
+          loc: node.loc,
           content: node.content!,
         };
 
@@ -509,6 +592,7 @@ export function parse(content: string): Tree {
 
       const attribute: HtmlAttributeNode = {
         type: "html_attribute",
+        loc: getLoc(attrNode),
         name: nameNode.text,
       };
 
@@ -528,12 +612,14 @@ export function parse(content: string): Tree {
     if (rawText && rawText.text) {
       children.push({
         type: "content",
+        loc: getLoc(rawText),
         content: rawText.text,
       });
     }
 
     const result: HtmlElementNode = {
       type: "html_element",
+      loc: getLoc(node),
       name: tagName.text,
       children,
     };
@@ -639,6 +725,7 @@ export function parse(content: string): Tree {
 
         const attribute: HtmlAttributeNode = {
           type: "html_attribute",
+          loc: getLoc(attrNode),
           name: nameNode.text,
         };
 
@@ -661,9 +748,14 @@ export function parse(content: string): Tree {
               | "endif"
               | "content"
               | "html_element";
+            loc: SourceLocation;
             name?: string;
             functionName?: string;
             expression?: string;
+            expressionLoc?: SourceLocation;
+            tagLoc?: SourceLocation;
+            variableLoc?: SourceLocation;
+            functionLoc?: SourceLocation;
             content?: string;
           }
         | HtmlElementNode
@@ -678,6 +770,7 @@ export function parse(content: string): Tree {
         if (child.type === "content") {
           rawChildren.push({
             type: "content",
+            loc: getLoc(child),
             content: child.text,
           });
         } else if (child.type === "html_element") {
@@ -713,6 +806,7 @@ export function parse(content: string): Tree {
 
       const result: HtmlElementNode = {
         type: "html_element",
+        loc: getLoc(node),
         name: tagName.text,
         children: elementChildren,
       };
@@ -734,6 +828,7 @@ export function parse(content: string): Tree {
     if (child.type === "content") {
       allNodes.push({
         type: "content",
+        loc: getLoc(child),
         content: child.text,
       });
     } else if (child.type === "html_element") {
@@ -749,6 +844,7 @@ export function parse(content: string): Tree {
     } else if (child.type === "html_doctype") {
       allNodes.push({
         type: "doctype",
+        loc: getLoc(child),
       });
     } else if (child.type === "html_entity") {
       const entityNode = convertHtmlEntity(child);
@@ -787,9 +883,14 @@ export function parse(content: string): Tree {
             | "content"
             | "html_element"
             | "doctype";
+          loc: SourceLocation;
           name?: string;
           functionName?: string;
           expression?: string;
+          expressionLoc?: SourceLocation;
+          tagLoc?: SourceLocation;
+          variableLoc?: SourceLocation;
+          functionLoc?: SourceLocation;
           content?: string;
         }
       | HtmlElementNode
@@ -821,15 +922,18 @@ export function parse(content: string): Tree {
     const stack: TwigStatementDirectiveNode[] = [];
 
     for (const node of nodes) {
-      if (node.type === "block") {
+      if (node.type === "block" && "loc" in node && "tagLoc" in node) {
         const blockNode: TwigStatementDirectiveNode = {
           tag: {
             type: "twig_tag",
+            loc: node.tagLoc!,
             name: "block",
           },
           type: "twig_statement_directive",
+          loc: node.loc,
           variable: {
             type: "twig_variable",
+            loc: node.variableLoc!,
             content: node.name!,
           },
           children: [],
@@ -851,13 +955,16 @@ export function parse(content: string): Tree {
       } else if (node.type === "endblock") {
         // Pop from stack when we encounter an endblock
         stack.pop();
-      } else if (node.type === "if") {
+      } else if (node.type === "if" && "loc" in node && "expressionLoc" in node) {
         const ifNode: TwigStatementDirectiveNode = {
           type: "twig_statement_directive",
+          loc: node.loc,
           condition: {
             type: "twig_condition",
+            loc: node.loc,
             expression: {
               type: "twig_expression",
+              loc: node.expressionLoc!,
               content: node.expression!,
             },
           },
@@ -880,11 +987,13 @@ export function parse(content: string): Tree {
       } else if (node.type === "endif") {
         // Pop from stack when we encounter an endif
         stack.pop();
-      } else if (node.type === "function") {
+      } else if (node.type === "function" && "loc" in node && "functionLoc" in node) {
         const functionNode: TwigStatementDirectiveNode = {
           type: "twig_statement_directive",
+          loc: node.loc,
           function: {
             type: "twig_function",
+            loc: node.functionLoc!,
             name: node.functionName!,
           },
         };
@@ -899,9 +1008,10 @@ export function parse(content: string): Tree {
           // Add to root level
           result.push(functionNode);
         }
-      } else if (node.type === "content") {
+      } else if (node.type === "content" && "loc" in node) {
         const contentNode: ContentNode = {
           type: "content",
+          loc: node.loc,
           content: node.content!,
         };
 
@@ -916,6 +1026,7 @@ export function parse(content: string): Tree {
           // but we'll handle it gracefully
           result.push({
             type: "twig_statement_directive",
+            loc: node.loc,
             children: [contentNode],
           });
         }
@@ -933,9 +1044,10 @@ export function parse(content: string): Tree {
           // Add to root level
           result.push(htmlNode);
         }
-      } else if (node.type === "doctype") {
+      } else if (node.type === "doctype" && "loc" in node) {
         const doctypeNode: HtmlDoctypeNode = {
           type: "doctype",
+          loc: node.loc,
         };
 
         if (stack.length > 0) {
@@ -1011,6 +1123,7 @@ export function parse(content: string): Tree {
   return {
     rootNode: {
       type: "template",
+      loc: getLoc(tree.rootNode),
       children,
     },
   };

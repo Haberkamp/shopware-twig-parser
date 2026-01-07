@@ -27,28 +27,98 @@ it("parses twig block inside HTML element", () => {
                     "children": [
                       {
                         "content": "Content",
+                        "loc": {
+                          "end": {
+                            "column": 21,
+                            "line": 3,
+                          },
+                          "start": {
+                            "column": 14,
+                            "line": 3,
+                          },
+                        },
                         "type": "content",
                       },
                     ],
+                    "loc": {
+                      "end": {
+                        "column": 28,
+                        "line": 3,
+                      },
+                      "start": {
+                        "column": 8,
+                        "line": 3,
+                      },
+                    },
                     "name": "span",
                     "type": "html_element",
                   },
                 ],
+                "loc": {
+                  "end": {
+                    "column": 21,
+                    "line": 2,
+                  },
+                  "start": {
+                    "column": 4,
+                    "line": 2,
+                  },
+                },
                 "tag": {
+                  "loc": {
+                    "end": {
+                      "column": 12,
+                      "line": 2,
+                    },
+                    "start": {
+                      "column": 7,
+                      "line": 2,
+                    },
+                  },
                   "name": "block",
                   "type": "twig_tag",
                 },
                 "type": "twig_statement_directive",
                 "variable": {
                   "content": "inner",
+                  "loc": {
+                    "end": {
+                      "column": 18,
+                      "line": 2,
+                    },
+                    "start": {
+                      "column": 13,
+                      "line": 2,
+                    },
+                  },
                   "type": "twig_variable",
                 },
               },
             ],
+            "loc": {
+              "end": {
+                "column": 6,
+                "line": 5,
+              },
+              "start": {
+                "column": 0,
+                "line": 1,
+              },
+            },
             "name": "div",
             "type": "html_element",
           },
         ],
+        "loc": {
+          "end": {
+            "column": 6,
+            "line": 5,
+          },
+          "start": {
+            "column": 0,
+            "line": 1,
+          },
+        },
         "type": "template",
       },
     }
@@ -81,9 +151,29 @@ it("parses twig if statement inside HTML element", () => {
                     "children": [
                       {
                         "content": "Item",
+                        "loc": {
+                          "end": {
+                            "column": 16,
+                            "line": 3,
+                          },
+                          "start": {
+                            "column": 12,
+                            "line": 3,
+                          },
+                        },
                         "type": "content",
                       },
                     ],
+                    "loc": {
+                      "end": {
+                        "column": 21,
+                        "line": 3,
+                      },
+                      "start": {
+                        "column": 8,
+                        "line": 3,
+                      },
+                    },
                     "name": "li",
                     "type": "html_element",
                   },
@@ -91,17 +181,67 @@ it("parses twig if statement inside HTML element", () => {
                 "condition": {
                   "expression": {
                     "content": "items",
+                    "loc": {
+                      "end": {
+                        "column": 15,
+                        "line": 2,
+                      },
+                      "start": {
+                        "column": 10,
+                        "line": 2,
+                      },
+                    },
                     "type": "twig_expression",
                   },
+                  "loc": {
+                    "end": {
+                      "column": 18,
+                      "line": 2,
+                    },
+                    "start": {
+                      "column": 4,
+                      "line": 2,
+                    },
+                  },
                   "type": "twig_condition",
+                },
+                "loc": {
+                  "end": {
+                    "column": 18,
+                    "line": 2,
+                  },
+                  "start": {
+                    "column": 4,
+                    "line": 2,
+                  },
                 },
                 "type": "twig_statement_directive",
               },
             ],
+            "loc": {
+              "end": {
+                "column": 5,
+                "line": 5,
+              },
+              "start": {
+                "column": 0,
+                "line": 1,
+              },
+            },
             "name": "ul",
             "type": "html_element",
           },
         ],
+        "loc": {
+          "end": {
+            "column": 5,
+            "line": 5,
+          },
+          "start": {
+            "column": 0,
+            "line": 1,
+          },
+        },
         "type": "template",
       },
     }
@@ -129,33 +269,113 @@ it("parses multiple twig blocks inside HTML element", () => {
             "children": [
               {
                 "children": [],
+                "loc": {
+                  "end": {
+                    "column": 21,
+                    "line": 2,
+                  },
+                  "start": {
+                    "column": 4,
+                    "line": 2,
+                  },
+                },
                 "tag": {
+                  "loc": {
+                    "end": {
+                      "column": 12,
+                      "line": 2,
+                    },
+                    "start": {
+                      "column": 7,
+                      "line": 2,
+                    },
+                  },
                   "name": "block",
                   "type": "twig_tag",
                 },
                 "type": "twig_statement_directive",
                 "variable": {
                   "content": "first",
+                  "loc": {
+                    "end": {
+                      "column": 18,
+                      "line": 2,
+                    },
+                    "start": {
+                      "column": 13,
+                      "line": 2,
+                    },
+                  },
                   "type": "twig_variable",
                 },
               },
               {
                 "children": [],
+                "loc": {
+                  "end": {
+                    "column": 22,
+                    "line": 3,
+                  },
+                  "start": {
+                    "column": 4,
+                    "line": 3,
+                  },
+                },
                 "tag": {
+                  "loc": {
+                    "end": {
+                      "column": 12,
+                      "line": 3,
+                    },
+                    "start": {
+                      "column": 7,
+                      "line": 3,
+                    },
+                  },
                   "name": "block",
                   "type": "twig_tag",
                 },
                 "type": "twig_statement_directive",
                 "variable": {
                   "content": "second",
+                  "loc": {
+                    "end": {
+                      "column": 19,
+                      "line": 3,
+                    },
+                    "start": {
+                      "column": 13,
+                      "line": 3,
+                    },
+                  },
                   "type": "twig_variable",
                 },
               },
             ],
+            "loc": {
+              "end": {
+                "column": 6,
+                "line": 4,
+              },
+              "start": {
+                "column": 0,
+                "line": 1,
+              },
+            },
             "name": "div",
             "type": "html_element",
           },
         ],
+        "loc": {
+          "end": {
+            "column": 6,
+            "line": 4,
+          },
+          "start": {
+            "column": 0,
+            "line": 1,
+          },
+        },
         "type": "template",
       },
     }
@@ -185,6 +405,16 @@ it("parses nested HTML with twig block deeply nested", () => {
           {
             "attributes": [
               {
+                "loc": {
+                  "end": {
+                    "column": 18,
+                    "line": 1,
+                  },
+                  "start": {
+                    "column": 5,
+                    "line": 1,
+                  },
+                },
                 "name": "class",
                 "type": "html_attribute",
                 "value": "outer",
@@ -194,6 +424,16 @@ it("parses nested HTML with twig block deeply nested", () => {
               {
                 "attributes": [
                   {
+                    "loc": {
+                      "end": {
+                        "column": 22,
+                        "line": 2,
+                      },
+                      "start": {
+                        "column": 9,
+                        "line": 2,
+                      },
+                    },
                     "name": "class",
                     "type": "html_attribute",
                     "value": "inner",
@@ -206,32 +446,112 @@ it("parses nested HTML with twig block deeply nested", () => {
                         "children": [
                           {
                             "content": "Hello",
+                            "loc": {
+                              "end": {
+                                "column": 23,
+                                "line": 4,
+                              },
+                              "start": {
+                                "column": 18,
+                                "line": 4,
+                              },
+                            },
                             "type": "content",
                           },
                         ],
+                        "loc": {
+                          "end": {
+                            "column": 30,
+                            "line": 4,
+                          },
+                          "start": {
+                            "column": 12,
+                            "line": 4,
+                          },
+                        },
                         "name": "span",
                         "type": "html_element",
                       },
                     ],
+                    "loc": {
+                      "end": {
+                        "column": 27,
+                        "line": 3,
+                      },
+                      "start": {
+                        "column": 8,
+                        "line": 3,
+                      },
+                    },
                     "tag": {
+                      "loc": {
+                        "end": {
+                          "column": 16,
+                          "line": 3,
+                        },
+                        "start": {
+                          "column": 11,
+                          "line": 3,
+                        },
+                      },
                       "name": "block",
                       "type": "twig_tag",
                     },
                     "type": "twig_statement_directive",
                     "variable": {
                       "content": "content",
+                      "loc": {
+                        "end": {
+                          "column": 24,
+                          "line": 3,
+                        },
+                        "start": {
+                          "column": 17,
+                          "line": 3,
+                        },
+                      },
                       "type": "twig_variable",
                     },
                   },
                 ],
+                "loc": {
+                  "end": {
+                    "column": 10,
+                    "line": 6,
+                  },
+                  "start": {
+                    "column": 4,
+                    "line": 2,
+                  },
+                },
                 "name": "div",
                 "type": "html_element",
               },
             ],
+            "loc": {
+              "end": {
+                "column": 6,
+                "line": 7,
+              },
+              "start": {
+                "column": 0,
+                "line": 1,
+              },
+            },
             "name": "div",
             "type": "html_element",
           },
         ],
+        "loc": {
+          "end": {
+            "column": 6,
+            "line": 7,
+          },
+          "start": {
+            "column": 0,
+            "line": 1,
+          },
+        },
         "type": "template",
       },
     }
@@ -265,6 +585,16 @@ it("parses Shopware page template pattern", () => {
               {
                 "attributes": [
                   {
+                    "loc": {
+                      "end": {
+                        "column": 28,
+                        "line": 2,
+                      },
+                      "start": {
+                        "column": 13,
+                        "line": 2,
+                      },
+                    },
                     "name": "class",
                     "type": "html_attribute",
                     "value": "sw-page",
@@ -276,6 +606,16 @@ it("parses Shopware page template pattern", () => {
                       {
                         "attributes": [
                           {
+                            "loc": {
+                              "end": {
+                                "column": 39,
+                                "line": 4,
+                              },
+                              "start": {
+                                "column": 22,
+                                "line": 4,
+                              },
+                            },
                             "name": "#smart-bar-header",
                             "type": "html_attribute",
                           },
@@ -285,43 +625,153 @@ it("parses Shopware page template pattern", () => {
                             "children": [
                               {
                                 "expression": "title",
+                                "loc": {
+                                  "end": {
+                                    "column": 31,
+                                    "line": 5,
+                                  },
+                                  "start": {
+                                    "column": 20,
+                                    "line": 5,
+                                  },
+                                },
                                 "type": "vue_interpolation",
                               },
                             ],
+                            "loc": {
+                              "end": {
+                                "column": 36,
+                                "line": 5,
+                              },
+                              "start": {
+                                "column": 16,
+                                "line": 5,
+                              },
+                            },
                             "name": "h2",
                             "type": "html_element",
                           },
                         ],
+                        "loc": {
+                          "end": {
+                            "column": 23,
+                            "line": 6,
+                          },
+                          "start": {
+                            "column": 12,
+                            "line": 4,
+                          },
+                        },
                         "name": "template",
                         "type": "html_element",
                       },
                     ],
+                    "loc": {
+                      "end": {
+                        "column": 35,
+                        "line": 3,
+                      },
+                      "start": {
+                        "column": 8,
+                        "line": 3,
+                      },
+                    },
                     "tag": {
+                      "loc": {
+                        "end": {
+                          "column": 16,
+                          "line": 3,
+                        },
+                        "start": {
+                          "column": 11,
+                          "line": 3,
+                        },
+                      },
                       "name": "block",
                       "type": "twig_tag",
                     },
                     "type": "twig_statement_directive",
                     "variable": {
                       "content": "sw_page_toolbar",
+                      "loc": {
+                        "end": {
+                          "column": 32,
+                          "line": 3,
+                        },
+                        "start": {
+                          "column": 17,
+                          "line": 3,
+                        },
+                      },
                       "type": "twig_variable",
                     },
                   },
                 ],
+                "loc": {
+                  "end": {
+                    "column": 14,
+                    "line": 8,
+                  },
+                  "start": {
+                    "column": 4,
+                    "line": 2,
+                  },
+                },
                 "name": "sw-page",
                 "type": "html_element",
               },
             ],
+            "loc": {
+              "end": {
+                "column": 19,
+                "line": 1,
+              },
+              "start": {
+                "column": 0,
+                "line": 1,
+              },
+            },
             "tag": {
+              "loc": {
+                "end": {
+                  "column": 8,
+                  "line": 1,
+                },
+                "start": {
+                  "column": 3,
+                  "line": 1,
+                },
+              },
               "name": "block",
               "type": "twig_tag",
             },
             "type": "twig_statement_directive",
             "variable": {
               "content": "sw_page",
+              "loc": {
+                "end": {
+                  "column": 16,
+                  "line": 1,
+                },
+                "start": {
+                  "column": 9,
+                  "line": 1,
+                },
+              },
               "type": "twig_variable",
             },
           },
         ],
+        "loc": {
+          "end": {
+            "column": 14,
+            "line": 9,
+          },
+          "start": {
+            "column": 0,
+            "line": 1,
+          },
+        },
         "type": "template",
       },
     }

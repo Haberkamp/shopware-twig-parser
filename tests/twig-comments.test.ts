@@ -16,9 +16,29 @@ it("parses a simple twig comment", () => {
         "children": [
           {
             "content": "This is a comment",
+            "loc": {
+              "end": {
+                "column": 23,
+                "line": 1,
+              },
+              "start": {
+                "column": 0,
+                "line": 1,
+              },
+            },
             "type": "twig_comment",
           },
         ],
+        "loc": {
+          "end": {
+            "column": 23,
+            "line": 1,
+          },
+          "start": {
+            "column": 0,
+            "line": 1,
+          },
+        },
         "type": "template",
       },
     }
@@ -42,9 +62,29 @@ it("parses a multiline twig comment", () => {
           {
             "content": "This is a
        multiline comment",
+            "loc": {
+              "end": {
+                "column": 23,
+                "line": 2,
+              },
+              "start": {
+                "column": 0,
+                "line": 1,
+              },
+            },
             "type": "twig_comment",
           },
         ],
+        "loc": {
+          "end": {
+            "column": 23,
+            "line": 2,
+          },
+          "start": {
+            "column": 0,
+            "line": 1,
+          },
+        },
         "type": "template",
       },
     }
@@ -66,9 +106,29 @@ it("parses deprecated annotation in twig comment", () => {
         "children": [
           {
             "content": "@deprecated tag:v6.8.0 - Use \`mt-button\` instead.",
+            "loc": {
+              "end": {
+                "column": 55,
+                "line": 1,
+              },
+              "start": {
+                "column": 0,
+                "line": 1,
+              },
+            },
             "type": "twig_comment",
           },
         ],
+        "loc": {
+          "end": {
+            "column": 55,
+            "line": 1,
+          },
+          "start": {
+            "column": 0,
+            "line": 1,
+          },
+        },
         "type": "template",
       },
     }
@@ -92,13 +152,43 @@ it("parses twig comment inside HTML element", () => {
             "children": [
               {
                 "content": "comment",
+                "loc": {
+                  "end": {
+                    "column": 18,
+                    "line": 1,
+                  },
+                  "start": {
+                    "column": 5,
+                    "line": 1,
+                  },
+                },
                 "type": "twig_comment",
               },
             ],
+            "loc": {
+              "end": {
+                "column": 24,
+                "line": 1,
+              },
+              "start": {
+                "column": 0,
+                "line": 1,
+              },
+            },
             "name": "div",
             "type": "html_element",
           },
         ],
+        "loc": {
+          "end": {
+            "column": 24,
+            "line": 1,
+          },
+          "start": {
+            "column": 0,
+            "line": 1,
+          },
+        },
         "type": "template",
       },
     }
@@ -122,21 +212,71 @@ it("parses twig comment inline with text", () => {
             "children": [
               {
                 "content": "You can also comment out",
+                "loc": {
+                  "end": {
+                    "column": 27,
+                    "line": 1,
+                  },
+                  "start": {
+                    "column": 3,
+                    "line": 1,
+                  },
+                },
                 "type": "content",
               },
               {
                 "content": "part of a line",
+                "loc": {
+                  "end": {
+                    "column": 48,
+                    "line": 1,
+                  },
+                  "start": {
+                    "column": 28,
+                    "line": 1,
+                  },
+                },
                 "type": "twig_comment",
               },
               {
                 "content": ".",
+                "loc": {
+                  "end": {
+                    "column": 49,
+                    "line": 1,
+                  },
+                  "start": {
+                    "column": 48,
+                    "line": 1,
+                  },
+                },
                 "type": "content",
               },
             ],
+            "loc": {
+              "end": {
+                "column": 53,
+                "line": 1,
+              },
+              "start": {
+                "column": 0,
+                "line": 1,
+              },
+            },
             "name": "p",
             "type": "html_element",
           },
         ],
+        "loc": {
+          "end": {
+            "column": 53,
+            "line": 1,
+          },
+          "start": {
+            "column": 0,
+            "line": 1,
+          },
+        },
         "type": "template",
       },
     }
@@ -159,21 +299,71 @@ it("parses twig comment before twig block", () => {
         "children": [
           {
             "content": "Comment",
+            "loc": {
+              "end": {
+                "column": 13,
+                "line": 1,
+              },
+              "start": {
+                "column": 0,
+                "line": 1,
+              },
+            },
             "type": "twig_comment",
           },
           {
             "children": [],
+            "loc": {
+              "end": {
+                "column": 15,
+                "line": 2,
+              },
+              "start": {
+                "column": 0,
+                "line": 2,
+              },
+            },
             "tag": {
+              "loc": {
+                "end": {
+                  "column": 8,
+                  "line": 2,
+                },
+                "start": {
+                  "column": 3,
+                  "line": 2,
+                },
+              },
               "name": "block",
               "type": "twig_tag",
             },
             "type": "twig_statement_directive",
             "variable": {
               "content": "foo",
+              "loc": {
+                "end": {
+                  "column": 12,
+                  "line": 2,
+                },
+                "start": {
+                  "column": 9,
+                  "line": 2,
+                },
+              },
               "type": "twig_variable",
             },
           },
         ],
+        "loc": {
+          "end": {
+            "column": 29,
+            "line": 2,
+          },
+          "start": {
+            "column": 0,
+            "line": 1,
+          },
+        },
         "type": "template",
       },
     }
@@ -195,9 +385,29 @@ it("parses empty twig comment", () => {
         "children": [
           {
             "content": "",
+            "loc": {
+              "end": {
+                "column": 4,
+                "line": 1,
+              },
+              "start": {
+                "column": 0,
+                "line": 1,
+              },
+            },
             "type": "twig_comment",
           },
         ],
+        "loc": {
+          "end": {
+            "column": 4,
+            "line": 1,
+          },
+          "start": {
+            "column": 0,
+            "line": 1,
+          },
+        },
         "type": "template",
       },
     }
