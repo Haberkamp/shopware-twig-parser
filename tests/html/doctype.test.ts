@@ -14,9 +14,29 @@ it("parses doctype", () => {
       "rootNode": {
         "children": [
           {
+            "loc": {
+              "end": {
+                "column": 15,
+                "line": 1,
+              },
+              "start": {
+                "column": 0,
+                "line": 1,
+              },
+            },
             "type": "doctype",
           },
         ],
+        "loc": {
+          "end": {
+            "column": 15,
+            "line": 1,
+          },
+          "start": {
+            "column": 0,
+            "line": 1,
+          },
+        },
         "type": "template",
       },
     }

@@ -17,6 +17,16 @@ it("parses attributes", () => {
           {
             "attributes": [
               {
+                "loc": {
+                  "end": {
+                    "column": 15,
+                    "line": 1,
+                  },
+                  "start": {
+                    "column": 3,
+                    "line": 1,
+                  },
+                },
                 "name": "class",
                 "type": "html_attribute",
                 "value": "test",
@@ -25,13 +35,43 @@ it("parses attributes", () => {
             "children": [
               {
                 "content": "Hello",
+                "loc": {
+                  "end": {
+                    "column": 21,
+                    "line": 1,
+                  },
+                  "start": {
+                    "column": 16,
+                    "line": 1,
+                  },
+                },
                 "type": "content",
               },
             ],
+            "loc": {
+              "end": {
+                "column": 25,
+                "line": 1,
+              },
+              "start": {
+                "column": 0,
+                "line": 1,
+              },
+            },
             "name": "p",
             "type": "html_element",
           },
         ],
+        "loc": {
+          "end": {
+            "column": 25,
+            "line": 1,
+          },
+          "start": {
+            "column": 0,
+            "line": 1,
+          },
+        },
         "type": "template",
       },
     }
@@ -55,6 +95,16 @@ it("parses attributes without values", () => {
           {
             "attributes": [
               {
+                "loc": {
+                  "end": {
+                    "column": 8,
+                    "line": 1,
+                  },
+                  "start": {
+                    "column": 3,
+                    "line": 1,
+                  },
+                },
                 "name": "class",
                 "type": "html_attribute",
               },
@@ -62,17 +112,47 @@ it("parses attributes without values", () => {
             "children": [
               {
                 "content": "Hello",
+                "loc": {
+                  "end": {
+                    "column": 14,
+                    "line": 1,
+                  },
+                  "start": {
+                    "column": 9,
+                    "line": 1,
+                  },
+                },
                 "type": "content",
               },
             ],
+            "loc": {
+              "end": {
+                "column": 18,
+                "line": 1,
+              },
+              "start": {
+                "column": 0,
+                "line": 1,
+              },
+            },
             "name": "p",
             "type": "html_element",
           },
         ],
+        "loc": {
+          "end": {
+            "column": 18,
+            "line": 1,
+          },
+          "start": {
+            "column": 0,
+            "line": 1,
+          },
+        },
         "type": "template",
       },
     }
-    `
+  `
   );
 });
 
@@ -92,6 +172,16 @@ it("parses attributes without quotes", () => {
           {
             "attributes": [
               {
+                "loc": {
+                  "end": {
+                    "column": 13,
+                    "line": 1,
+                  },
+                  "start": {
+                    "column": 3,
+                    "line": 1,
+                  },
+                },
                 "name": "class",
                 "type": "html_attribute",
                 "value": "test",
@@ -100,16 +190,46 @@ it("parses attributes without quotes", () => {
             "children": [
               {
                 "content": "Hello",
+                "loc": {
+                  "end": {
+                    "column": 19,
+                    "line": 1,
+                  },
+                  "start": {
+                    "column": 14,
+                    "line": 1,
+                  },
+                },
                 "type": "content",
               },
             ],
+            "loc": {
+              "end": {
+                "column": 23,
+                "line": 1,
+              },
+              "start": {
+                "column": 0,
+                "line": 1,
+              },
+            },
             "name": "p",
             "type": "html_element",
           },
         ],
+        "loc": {
+          "end": {
+            "column": 23,
+            "line": 1,
+          },
+          "start": {
+            "column": 0,
+            "line": 1,
+          },
+        },
         "type": "template",
       },
     }
-    `
+  `
   );
 });
